@@ -18,4 +18,4 @@
  - Late move reduction
 
 # Run
- You will have to download Java JDK 15.0.2. Once you have downloaded it. To run it, open terminal and enter: 'java -jar AlphaChess_v1.0.jar'.
+ You will have to download Java JDK 15.0.2. To run it, open terminal and enter: 'java -jar AlphaChess_v1.0.jar'.
