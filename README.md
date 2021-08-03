@@ -7,10 +7,12 @@
  - Fast undo move
  - Stockfish-like classical evaluation
  - Negamax search with alpha-beta optimization
- - Move ordering:
-  - History heuristic
-  - CaptureHistory heuristic
-  - Buttferfly heuristic
-  - Countermove heuristic
+ - Move ordering
+ - History heuristic
+ - CaptureHistory heuristic
+ - Buttferfly heuristic
+ - Countermove heuristic
  - Transposition table (1-256MB)
  - Evalution pruning (Static null move pruning)
+ - Null move pruning
+ - Late move reduction
