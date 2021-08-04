@@ -12,9 +12,10 @@ public class UCI {
     private static Engine engine;
 
     public static void main(String[] argv) {
-         scan = new Scanner(System.in);
-         board = new Board();
-         engine = new Engine(board);
+        Book.randomizeVariationIndex();
+        scan = new Scanner(System.in);
+        board = new Board();
+        engine = new Engine(board);
 
 
         while (true) {
@@ -37,6 +38,8 @@ public class UCI {
 
 
                 if (args.size() > 1) {
+                    if (args.contains("infinite"))
+                        limit.bookDepth = 0;
                     if (args.contains("depth"))
                         limit.depth = Integer.parseInt(after(args, "depth"));
                     if (args.contains("nodes"))
@@ -78,7 +81,8 @@ public class UCI {
             case "uci" -> {
                 System.out.println("id name DeepJava");
                 System.out.println("id author Adolf Urian");
-                System.out.println("setoption name Hash type spin default 16 min 1 max 256");
+                System.out.println("option name Clear Hash type button");
+                System.out.println("option name Hash type spin default 16 min 1 max 256");
                 System.out.println("uciok");
             }
             case "position" -> {
@@ -109,6 +113,7 @@ public class UCI {
                 System.out.println(board);
             }
             case "ucinewgame" -> {
+                Book.randomizeVariationIndex();
                 board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
                 engine.TT().clear();
             }
