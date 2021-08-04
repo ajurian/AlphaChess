@@ -12,7 +12,6 @@ public class UCI {
     private static Engine engine;
 
     public static void main(String[] argv) {
-        Book.randomizeVariationIndex();
         scan = new Scanner(System.in);
         board = new Board();
         engine = new Engine(board);
@@ -27,6 +26,7 @@ public class UCI {
     }
 
 
+    private static int bookDepth = 8;
     private static void respond(String input) {
         ArrayList<String> args = new ArrayList<>(Arrays.asList(input.split(" ")));
         String command = args.get(0);
@@ -35,6 +35,7 @@ public class UCI {
         switch (command) {
             case "go" -> {
                 TimeLimit limit = new TimeLimit();
+                limit.bookDepth = bookDepth;
 
 
                 if (args.size() > 1) {
@@ -68,13 +69,16 @@ public class UCI {
                 String value = after(args, "value");
 
 
-                switch (name) {
-                    case "Clear Hash" -> {
+                switch (name.toLowerCase()) {
+                    case "clear hash" -> {
                         engine.TT().clear();
                     }
-                    case "Hash" -> {
+                    case "hash" -> {
                         int MB = Integer.parseInt(value);
                         engine.TT().resize(MB);
+                    }
+                    case "book depth" -> {
+                        bookDepth = Integer.parseInt(value);
                     }
                 }
             }
@@ -83,6 +87,7 @@ public class UCI {
                 System.out.println("id author Adolf Urian");
                 System.out.println("option name Clear Hash type button");
                 System.out.println("option name Hash type spin default 16 min 1 max 256");
+                System.out.println("option name Book Depth type spin default 8 min 0 max 20");
                 System.out.println("uciok");
             }
             case "position" -> {
@@ -113,7 +118,6 @@ public class UCI {
                 System.out.println(board);
             }
             case "ucinewgame" -> {
-                Book.randomizeVariationIndex();
                 board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
                 engine.TT().clear();
             }
