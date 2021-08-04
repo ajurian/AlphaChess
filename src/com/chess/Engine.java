@@ -37,7 +37,7 @@ public class Engine {
         tree = new Node[maxPly];
         rm = new RootMove(this);
         tm = new TimeManager();
-        TT = new TranspositionTable(16);
+        TT = new TranspositionTable(64);
 
 
         for (int i = 0; i < tree.length; i++)
@@ -151,6 +151,7 @@ public class Engine {
     private void clearSearch() {
         tm.resetTimeControl();
         rm.clear();
+        TT.recordCount(0);
 
 
         selDepth = 0;
@@ -209,6 +210,11 @@ public class Engine {
 
 
         nodes++;
+        Node node = tree[ply];
+        node.inCheck = board.isKingAttacked();
+        node.pvNode = beta - alpha > 1;
+
+
         if (ply >= maxPly - 1)
             return evaluate(board);
 
@@ -219,9 +225,6 @@ public class Engine {
             return alpha;
 
 
-        Node node = tree[ply];
-        node.inCheck = board.isKingAttacked();
-        node.pvNode = beta - alpha > 1;
         int bestValue, futilityBase, move;
 
 
@@ -339,7 +342,7 @@ public class Engine {
         improving = false;
 
 
-        if ((ply == 0 || beta - alpha > 1) && selDepth <= ply)
+        if ((ply == 0 || node.pvNode) && selDepth <= ply)
             selDepth = ply + 1;
 
 
@@ -389,7 +392,7 @@ public class Engine {
                         if (ttValue >= beta) {
                             if (!isTactical(node.ttMove))
                                 updateQuietStats(node, node.ttMove, statBonus(depth));
-//                            if (ply > 0 && tree[ply - 1].movesIterated <= 2 && !priorCapture)
+//                            if (ply > 0 && tree[ply - 1].movesIterated <= 4 && !priorCapture)
 //                                updateHistoryStats(ply - 1, tree[ply - 1].currentMove, -statBonus(depth + 1));
                         } else if (!isTactical(node.ttMove)) {
                             updateButterflyStats(us, node.ttMove, -statBonus(depth));
@@ -640,6 +643,15 @@ public class Engine {
 
 
     public int search(TimeLimit limit) {
+        if (board.gamePly() < limit.bookDepth) {
+            int bookMove = Book.findMove(board);
+            if (bookMove != 0) {
+                System.out.println("bestmove " + notation(bookMove));
+                return bookMove;
+            }
+        }
+
+
         if (limit.depth <= 0)
             limit.depth = maxPly;
 
