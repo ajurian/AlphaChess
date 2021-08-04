@@ -11,6 +11,7 @@
  - History heuristic
  - CaptureHistory heuristic
  - Buttferfly heuristic
+ - Killer heuristic
  - Countermove heuristic
  - Transposition table (1-256MB)
  - Evalution pruning (Static null move pruning)
