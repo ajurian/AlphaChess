@@ -16,10 +16,10 @@ import static com.chess.Score.*;
 
 public class MoveIterator {
 
-    public static int[] lowPlyHistory = new int[4 * 64 * 64];
-    public static int[] butterflyHistory = new int[2 * 64 * 64];
-    public static int[] captureHistory = new int[12 * 64 * 6];
-    public static int[] counterMoves = new int[12 * 64];
+    public static final int[] lowPlyHistory = new int[4 * 64 * 64];
+    public static final int[] butterflyHistory = new int[2 * 64 * 64];
+    public static final int[] captureHistory = new int[12 * 64 * 6];
+    public static final int[] counterMoves = new int[12 * 64];
 
 
     private static final int[] plyOffsets = {1, 2, 4, 6};
@@ -51,7 +51,7 @@ public class MoveIterator {
         public Stage increment() {
             return allStages[ordinal() + 1];
         }
-        public static Stage[] allStages = values();
+        public static final Stage[] allStages = values();
     }
 
 
@@ -168,7 +168,6 @@ public class MoveIterator {
         foundKM3 = false;
         foundKM4 = false;
         foundCM = false;
-        node = engine.currentNode();
     }
 
 
@@ -192,6 +191,9 @@ public class MoveIterator {
     public void initialize() {
         clear();
         int ply = engine.ply();
+
+
+        node = engine.currentNode();
         ttMove = node.ttMove;
         pvMove = engine.rootMove().pvTable[ply];
         prevMove = (ply > 0 ? engine.tree()[ply - 1].currentMove : 0);
@@ -199,6 +201,8 @@ public class MoveIterator {
         killerMove2 = node.killerMove2;
         killerMove3 = (ply >= 2 ? engine.tree()[ply - 2].killerMove1 : 0);
         killerMove4 = (ply >= 2 ? engine.tree()[ply - 2].killerMove2 : 0);
+
+
         generateMoves();
     }
 
