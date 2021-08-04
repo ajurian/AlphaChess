@@ -11,7 +11,6 @@ import static com.chess.Bitboard.*;
 import static com.chess.Rank.*;
 import static com.chess.File.*;
 import static com.chess.Square.*;
-import static com.chess.MoveSorter.*;
 
 public class MoveGenerator {
 
