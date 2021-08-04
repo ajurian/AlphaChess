@@ -4,7 +4,6 @@ import java.util.Objects;
 
 public class TTEntry {
 
-    public static final TTEntry EMPTY = new TTEntry();
     public int value, depth, bound, move, eval;
     public long key;
 
