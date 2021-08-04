@@ -10,14 +10,11 @@ public class TimeManager {
         startTime = System.currentTimeMillis();
         Side us = board.sideToMove();
         limit.mtg = limit.mtg == 0 ? 30 : limit.mtg;
-        long timeLeft = Math.max(1, limit.time[us.ordinal()] + limit.inc[us.ordinal()] * (limit.mtg - 1) - 10L * (2 + limit.mtg));
 
 
         if (limit.moveTime == 0L && limit.time[us.ordinal()] > 0L) {
-            double n = Math.min(board.gamePly(), 10.0);
-            double factor = 2.0 - n / 10.0;
-            long target = timeLeft / limit.mtg;
-            limit.moveTime = (long) (factor * target);
+            long timeLeft = Math.max(1, limit.time[us.ordinal()] + limit.inc[us.ordinal()] * (limit.mtg - 1) - 10L * (2 + limit.mtg));
+            limit.moveTime = timeLeft / limit.mtg;
             stopTime = startTime + limit.moveTime;
         } else if (limit.moveTime > 0L)
             stopTime = startTime + limit.moveTime;
