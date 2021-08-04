@@ -8,8 +8,17 @@ public class TranspositionTable {
     public TranspositionTable(int MB) {
         resize(MB);
     }
+    public TTEntry[] entries() {
+        return entries;
+    }
     public long recordCount() {
         return recordCount;
+    }
+    public void recordCount(int recordCount) {
+        this.recordCount = recordCount;
+    }
+    public int hashSize() {
+        return size;
     }
 
 
@@ -19,7 +28,8 @@ public class TranspositionTable {
 
 
     public void resize(int MB) {
-        size = 0x100000 * MB;
+        // 28 = sizeof(TTEntry)
+        size = 0x100000 * MB / 28;
         while (!clear())
             resize(MB / 2);
     }
