@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class TimeLimit {
 
     public long[] time = new long[2], inc = new long[2];
-    public int depth = 0, nodes = 0, mate = 0, mtg = 0;
+    public int depth = 0, nodes = 0, mate = 0, mtg = 0, bookDepth = 20;
     public long moveTime = 0L;
 
 
