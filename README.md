@@ -17,6 +17,7 @@
  - Evalution pruning (Static null move pruning)
  - Null move pruning
  - Late move reduction
+ - PV search
 
-# Run
- You will have to download Java JDK 15.0.2. To run it, open terminal and enter: 'java -jar AlphaChess_v1.0.jar'.
+# How to run
+ You will have to download Java JDK 15.0.2. To run it, open terminal and enter: `java -jar <name>.jar`. In the future, I will try converting `.jar` to `.exe` so you won't bother downloading JDKs or JREs.
