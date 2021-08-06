@@ -34,6 +34,7 @@ public class MoveIterator {
 
 
     private enum Stage {
+        ALL_MOVES,
         TT,
         PV,
         GOOD_CAPTURES_PROMOS,
@@ -64,6 +65,7 @@ public class MoveIterator {
     }
 
 
+    private final boolean sortMoves;
     private final Engine engine;
     private final Board board;
     private Stage stage;
@@ -96,6 +98,11 @@ public class MoveIterator {
     private boolean foundCM;
 
 
+    private final int[] allMoves;
+    private int allMovesIndex;
+    private int allMovesLength;
+
+
     private final int[] goodCaptures;
     private final int[] goodCapturesSee;
     private final int[] goodCapturesScore;
@@ -108,15 +115,16 @@ public class MoveIterator {
     private final int[] nonCaptures;
     private final int[] nonCapturesSee;
     private final int[] nonCaptureScore;
-    private Node node;
 
 
-    public MoveIterator(Engine engine) {
+    public MoveIterator(Engine engine, boolean sortMoves) {
+        this.sortMoves = sortMoves;
         this.engine = engine;
         board = engine.board();
 
 
         clear();
+        allMoves = new int[maxMoves];
         goodCaptures = new int[maxMoves];
         goodCapturesSee = new int[maxMoves];
         goodCapturesScore = new int[maxMoves];
@@ -144,7 +152,9 @@ public class MoveIterator {
 
 
     public void clear() {
-        stage = Stage.TT;
+        stage = (sortMoves ? Stage.TT : Stage.ALL_MOVES);
+        allMovesIndex = 0;
+        allMovesLength = 0;
         goodCaptureIndex = 0;
         equalCaptureIndex = 0;
         badCaptureIndex = 0;
@@ -173,6 +183,7 @@ public class MoveIterator {
 
     public void reset() {
         clear();
+        Arrays.fill(allMoves, 0);
         Arrays.fill(goodCaptures, 0);
         Arrays.fill(goodCapturesSee, 0);
         Arrays.fill(goodCapturesScore, 0);
@@ -193,7 +204,7 @@ public class MoveIterator {
         int ply = engine.ply();
 
 
-        node = engine.currentNode();
+        Node node = engine.currentNode();
         ttMove = node.ttMove;
         pvMove = engine.rootMove().pvTable[ply];
         prevMove = (ply > 0 ? engine.tree()[ply - 1].currentMove : 0);
@@ -208,6 +219,13 @@ public class MoveIterator {
 
 
     public int next() {
+        if (stage.equals(Stage.ALL_MOVES)) {
+            if (allMovesIndex >= allMovesLength)
+                return 0;
+            return allMoves[allMovesIndex++];
+        }
+
+
         switch (stage) {
             case TT -> {
                 stage = stage.increment();
@@ -342,6 +360,12 @@ public class MoveIterator {
 
 
     private void addMove(int move) {
+        if (!sortMoves) {
+            allMoves[allMovesLength++] = move;
+            return;
+        }
+
+
         if (move == ttMove) {
             foundTT = true;
             return;
