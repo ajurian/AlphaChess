@@ -2,6 +2,7 @@ package com.chess;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.chess.Bitboard.*;
@@ -57,7 +58,6 @@ public class Board {
     private final int[] pieceCount;
     private final int[] nonPawnMaterial;
     private final int[] psqScore;
-    private final long[] kingBlockers;
 
 
     public Board() {
@@ -101,7 +101,6 @@ public class Board {
         pieceCount = new int[12];
         nonPawnMaterial = new int[2];
         psqScore = new int[2];
-        kingBlockers = new long[2];
 
 
         setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -211,7 +210,6 @@ public class Board {
         Arrays.fill(pieceCount, 0);
         Arrays.fill(nonPawnMaterial, 0);
         Arrays.fill(psqScore, 0);
-        Arrays.fill(kingBlockers, 0L);
     }
 
 
@@ -285,10 +283,6 @@ public class Board {
         moveCounter = parts[5].charAt(0) - '0';
         // initialize hash key
         hashKey = generateHashKey();
-
-
-        kingBlockers[0] = sliderBlockers(kingSquares[0], bitboard(Side.BLACK));
-        kingBlockers[1] = sliderBlockers(kingSquares[1], bitboard(Side.WHITE));
         repetitionTable[repetitionIndex++] = hashKey;
     }
 
@@ -487,55 +481,30 @@ public class Board {
 
 
     public boolean isInsufficientMaterial() {
-        if ((bitboard(WHITE_QUEEN) |
-             bitboard(BLACK_QUEEN) |
-             bitboard(WHITE_ROOK) |
-             bitboard(BLACK_ROOK)) != 0L)
-            return false;
-
-
-        long pawns = bitboard(WHITE_PAWN) | bitboard(BLACK_PAWN);
-        if (pawns == 0L) {
-            int count = Long.bitCount(bitboard());
-            int whiteCount = Long.bitCount(bitboard(Side.WHITE));
-            int blackCount = Long.bitCount(bitboard(Side.BLACK));
-
-
-            if (count == 4) {
-                int wbCount = Long.bitCount(bitboard(WHITE_BISHOP));
-                int bbCount = Long.bitCount(bitboard(BLACK_BISHOP));
-
-
-                if (whiteCount > 1 && blackCount > 1) {
-                    return !((wbCount == 1 && bbCount == 1) &&
-                            squareAt(lsb(bitboard(WHITE_BISHOP))).isLightSquare() != squareAt(lsb(bitboard(BLACK_BISHOP))).isLightSquare());
+        if (pieceCount(WHITE_PAWN) + pieceCount(BLACK_PAWN) == 0) {
+            if (pieceCount(WHITE_ROOK) + pieceCount(BLACK_ROOK) == 0
+             && pieceCount(WHITE_QUEEN) + pieceCount(BLACK_QUEEN) == 0) {
+                if (pieceCount(WHITE_BISHOP) + pieceCount(BLACK_BISHOP) == 0) {
+                    return pieceCount(WHITE_KNIGHT) < 3 && pieceCount(BLACK_KNIGHT) < 3;
+                } else if (pieceCount(WHITE_KNIGHT) + pieceCount(BLACK_KNIGHT) == 0) {
+                    return Math.abs(pieceCount(WHITE_BISHOP) - pieceCount(BLACK_BISHOP)) < 2;
+                } else if ((pieceCount(WHITE_KNIGHT) < 3 && pieceCount(WHITE_BISHOP) == 0)
+                        || (pieceCount(WHITE_BISHOP) == 1 && pieceCount(WHITE_KNIGHT) == 0)) {
+                    return (pieceCount(BLACK_KNIGHT) < 3 && pieceCount(BLACK_BISHOP) == 0)
+                            || (pieceCount(BLACK_BISHOP) == 1 && pieceCount(BLACK_KNIGHT) == 0);
                 }
-
-
-                if (whiteCount == 3 || blackCount == 3) {
-                    if (wbCount == 2 &&
-                       ((lightSquares & bitboard(WHITE_BISHOP)) == 0L) ||
-                       ((darkSquares & bitboard(WHITE_BISHOP)) == 0L))
-                        return true;
-                    else return bbCount == 2 &&
-                            ((lightSquares & bitboard(BLACK_BISHOP)) == 0L) ||
-                            ((darkSquares & bitboard(BLACK_BISHOP)) == 0L);
-                } else {
-                    return Long.bitCount(bitboard(WHITE_KNIGHT)) == 2 ||
-                            Long.bitCount(bitboard(BLACK_KNIGHT)) == 2;
+            } else if (pieceCount(WHITE_QUEEN) + pieceCount(BLACK_QUEEN) == 0) {
+                if (pieceCount(WHITE_ROOK) == 1 && pieceCount(BLACK_ROOK) == 0) {
+                    return pieceCount(WHITE_KNIGHT) + pieceCount(WHITE_BISHOP) == 0
+                            && (pieceCount(BLACK_KNIGHT) + pieceCount(BLACK_BISHOP) == 1
+                            || pieceCount(BLACK_KNIGHT) + pieceCount(BLACK_BISHOP) == 2);
+                } else if (pieceCount(WHITE_ROOK) == 0 && pieceCount(BLACK_ROOK) == 1) {
+                    return pieceCount(BLACK_KNIGHT) + pieceCount(BLACK_BISHOP) == 0
+                            && (pieceCount(WHITE_KNIGHT) + pieceCount(WHITE_BISHOP) == 1
+                            || pieceCount(WHITE_KNIGHT) + pieceCount(WHITE_BISHOP) == 2);
                 }
-            } else {
-                if ((bitboard(WHITE_KING) | bitboard(WHITE_BISHOP)) == bitboard(Side.WHITE) &&
-                   ((bitboard(BLACK_KING) | bitboard(BLACK_BISHOP)) == bitboard(Side.BLACK)))
-                    return (((lightSquares & bitboard(WHITE_BISHOP)) == 0L) &&
-                            ((lightSquares & bitboard(BLACK_BISHOP)) == 0L)) ||
-                            ((darkSquares & bitboard(WHITE_BISHOP)) == 0L) &&
-                            ((lightSquares & bitboard(BLACK_BISHOP)) == 0L);
-                return count < 4;
             }
         }
-
-
         return false;
     }
 
@@ -558,14 +527,28 @@ public class Board {
 
     public boolean isStaleMate() {
         if (!isKingAttacked())
-            return legalMoves().size() == 0;
+            return legalMoves().stream().noneMatch(move -> {
+                boolean valid = doMove(move);
+                if (valid) {
+                    undoMove();
+                    return true;
+                }
+                return false;
+            });
         return false;
     }
 
 
     public boolean isMated() {
         if (isKingAttacked())
-            return legalMoves().size() == 0;
+            return legalMoves().stream().noneMatch(move -> {
+                boolean valid = doMove(move);
+                if (valid) {
+                    undoMove();
+                    return true;
+                }
+                return false;
+            });
         return false;
     }
 
@@ -1062,7 +1045,7 @@ public class Board {
     private int ply;
     {
         for (int i = 0; i < tree.length; i++)
-            tree[i] = new Node(engine);
+            tree[i] = new Node(engine, false);
     }
 
 
