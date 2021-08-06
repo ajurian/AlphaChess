@@ -27,11 +27,11 @@ public class Node {
     public boolean inCheck;
 
 
-    public Node(Engine engine) {
+    public Node(Engine engine, boolean sortMoves) {
         quietMoves = new int[64];
         captures = new int[32];
         quietHistory = new int[12 * 64];
-        moveIterator = new MoveIterator(engine);
+        moveIterator = new MoveIterator(engine, sortMoves);
         clear();
     }
 
