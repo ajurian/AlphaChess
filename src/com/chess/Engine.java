@@ -41,7 +41,7 @@ public class Engine {
 
 
         for (int i = 0; i < tree.length; i++)
-            tree[i] = new Node(this);
+            tree[i] = new Node(this, true);
     }
 
 
@@ -392,8 +392,6 @@ public class Engine {
                         if (ttValue >= beta) {
                             if (!isTactical(node.ttMove))
                                 updateQuietStats(node, node.ttMove, statBonus(depth));
-//                            if (ply > 0 && tree[ply - 1].movesIterated <= 4 && !priorCapture)
-//                                updateHistoryStats(ply - 1, tree[ply - 1].currentMove, -statBonus(depth + 1));
                         } else if (!isTactical(node.ttMove)) {
                             updateButterflyStats(us, node.ttMove, -statBonus(depth));
                             updateHistoryStats(ply, node.ttMove, -statBonus(depth));
@@ -491,47 +489,6 @@ public class Engine {
             int extension = 0;
             int newDepth = depth - 1;
             givesCheck = board.isKingAttacked();
-
-
-            /*if (ply > 0 && board.nonPawnMaterial(us) != 0 && bestValue > lossValueInMaxPly) {
-                int R = ((reductions[depth] * reductions[node.movesIterated]) + 534) / 1024;
-                R += _int(!improving && R > 904);
-
-
-                int lmrDepth = Math.max(newDepth - R, 0);
-                if (isCapture(move) || givesCheck) {
-                    if (!givesCheck && lmrDepth < 1) {
-                        Piece capturedPiece = board.pieceAt(to(move));
-                        if (capturedPiece.equals(Piece.NONE) && to(move).equals(board.enPassant()))
-                            capturedPiece = board.pieceAt(board.enPassantTarget());
-
-
-                        if (captureHistory[capturedPiece.pieceType().ordinal() + 6 * (to(move).ordinal() + 64 * movingPiece(move).ordinal())] < 0) {
-                            board.undoMove();
-                            continue;
-                        }
-                    }
-
-
-                    if (iterator.lastMoveSee() < -218 * depth) {
-                        board.undoMove();
-                        continue;
-                    }
-                } else {
-                    if (lmrDepth < 5
-                     && (ply - 1 >= 0 && tree[ply - 1].quietHistory[movingPiece(move).ordinal() * 64 + to(move).ordinal()] < 0)
-                     && (ply - 2 >= 0 && tree[ply - 2].quietHistory[movingPiece(move).ordinal() * 64 + to(move).ordinal()] < 0)) {
-                        board.undoMove();
-                        continue;
-                    }
-
-
-                    if (iterator.lastMoveSee() < -(30 - Math.min(lmrDepth, 18)) * lmrDepth * lmrDepth) {
-                        board.undoMove();
-                        continue;
-                    }
-                }
-            }*/
 
 
             if (depth > 6 && givesCheck && Math.abs(node.staticEval) > 100)
