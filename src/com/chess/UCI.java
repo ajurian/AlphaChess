@@ -1,5 +1,8 @@
 package com.chess;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +31,7 @@ public class UCI {
 
     private static int bookDepth = 8;
     private static void respond(String input) {
+    try {
         ArrayList<String> args = new ArrayList<>(Arrays.asList(input.split(" ")));
         String command = args.get(0);
 
@@ -39,6 +43,11 @@ public class UCI {
 
 
                 if (args.size() > 1) {
+                    if (args.contains("perft")) {
+                        int depth = Integer.parseInt(after(args, "perft"));
+                        board.perft(depth);
+                        return;
+                    }
                     if (args.contains("infinite"))
                         limit.bookDepth = 0;
                     if (args.contains("depth"))
@@ -127,10 +136,14 @@ public class UCI {
             case "say" -> System.out.println(String.join(" ", args.subList(1, args.size()))); // experiments from gui
         }
     }
+    catch (Exception e) {}
+    }
 
 
     private static String after(List<String> args, String target) {
-        return args.get(args.indexOf(target) + 1);
+        try { return args.get(args.indexOf(target) + 1); }
+        catch (IndexOutOfBoundsException e) {}
+        return "";
     }
     private static String between(List<String> args, String start, String end) {
         return String.join(" ", args.subList(args.indexOf(start) + 1, args.indexOf(end)));
